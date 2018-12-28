@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function
-import os
-os.environ["SDL_VIDEODRIVER"] = "dummy"
+# import os
+# os.environ["SDL_VIDEODRIVER"] = "dummy"
 
 import tensorflow as tf
 import cv2
@@ -188,7 +188,10 @@ def trainNetwork(s, readout, h_fc1, sess):
             saver.save(sess, 'saved_model/' + GAME + '-dqn', global_step=t)
 
 def playGame():
+    # sess = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=True))
     sess = tf.InteractiveSession()
+    devices = sess.list_devices()
+    print(devices)
     s, readout, h_fc1 = createNetwork()
     trainNetwork(s, readout, h_fc1, sess)
 
