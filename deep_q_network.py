@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function
+import os
+os.environ["SDL_VIDEODRIVER"] = "dummy"
 
 import tensorflow as tf
 import cv2
@@ -121,6 +123,16 @@ def trainNetwork(s, readout, h_fc1, sess):
 
         # to complete the e-greedy action selection phase
         # TODO
+        if t % FRAME_PER_ACTION == 0:
+            if random.random() <= epsilon:
+                action_index = random.randrange(ACTIONS)
+                print("----------Random Action----------: "+ str(action_index))
+                a_t[action_index] = 1
+            else:
+                action_index = np.argmax(readout_t)
+                a_t[action_index] = 1
+        else:
+            a_t[0] = 1
 
         # scale down epsilon
         if epsilon > FINAL_EPSILON and t > OBSERVE:
@@ -145,6 +157,20 @@ def trainNetwork(s, readout, h_fc1, sess):
 
             # get the corresponding batch variables and perform q learning
             # TODO
+            s_j_batch = [data[0] for data in minibatch]
+            a_batch = [data[1] for data in minibatch]
+            reward_batch = [data[2] for data in minibatch]
+            nextState_batch = [data[3] for data in minibatch]
+
+            # Step 2: calculate y
+            y_batch = []
+            QValue_batch = readout.eval(feed_dict={s: nextState_batch})
+            for i in range(0, BATCH):
+                terminal = minibatch[i][4]
+                if terminal:
+                    y_batch.append(reward_batch[i])
+                else:
+                    y_batch.append(reward_batch[i] + GAMMA * np.max(QValue_batch[i]))
 
             # perform gradient step and a batch of BATCH_SIZE frames are used
             train_step.run(feed_dict = {
